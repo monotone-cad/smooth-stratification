@@ -22,10 +22,17 @@ Word repl()
 int main(int argc, char **argv)
 {
     /* Start up SACLIB. read data from stdin, robustly, continuing until read is successful. */
-    Word r, Ps, V, Ds, *S, t = 0;
+    Word i, r, Ps, V, Ds, S, t = 0;
     Word ac; char **av;
     ARGSACLIB(argc,argv,&ac,&av);
     BEGINSACLIB((Word *)&argc);
+
+    /* Initialise S. */
+    S = NIL, i = 0;
+    while (i < r) {
+        S = COMP(NIL, S);
+        ++i;
+    }
 
     while (t != 1) {
         t = read_input(&r, &V, &Ps);
@@ -33,7 +40,7 @@ int main(int argc, char **argv)
 
     FILINE();
 
-    Ds = stratify(r, Ps, V);
+    Ds = stratify(r, Ps, &S, V);
 
     /* Basic repl. */
     do {
@@ -50,8 +57,8 @@ int main(int argc, char **argv)
 
                 break;
             case 2:
-                SWRITE("List of all strata.");
-                // write_output(r, V, S);
+                SWRITE("List of all strata.\n");
+                write_output(r, S, V);
 
                 break;
             default:
@@ -62,8 +69,6 @@ int main(int argc, char **argv)
 
         SWRITE("\n");
     } while (t != 0); // 0: exit
-
-
 
     /* tidy up */
     ENDSACLIB(SAC_FREEMEM);

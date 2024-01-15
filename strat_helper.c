@@ -41,6 +41,11 @@ inline Word INDEX(Word count, Word M, Word p_index)
     return INV(COMP(p_index, J));
 }
 
+Word construct_stratum(Word Gs, Word P, Word Q, Word k)
+{
+    return LIST6(LIST2('h', k), P, EQOP, LIST2('s', k), Q, NEOP);
+}
+
 // recursive smooth stratification of polynomials Fs
 // np: number of polynomials
 // r: number of variables
@@ -49,7 +54,7 @@ inline Word INDEX(Word count, Word M, Word p_index)
 // Hs: list of polynomials h_i1,...,h_ik
 // Minor: (LENGTH(I1) - 1) * (LENGTH(I1) - 1) - matrix |a_ij| = partial h_i / partial x_j for h in Hs and i in Is
 // return list of all differentials computed by alrogithm
-Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, Word V)
+Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, Word *S_, Word V)
 {
     // end of recursion
     Word i0 = FIRST(Is); // number of variables considered so far
@@ -66,6 +71,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
+    Word S = LELTI(*S_, k);
 
     // set up working array
     Word g_count = np; // how many differentials computed so far, index in Gs
@@ -178,8 +184,11 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         if (Q != 0) {
             // Gs2 contains derivatives computed during recursion
-            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, V);
+            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, S_, V);
             Gs1 = CONC(Gs1, Gs2);
+
+            // append strata
+            S = COMP(construct_stratum(Gs, P, Q, k), S);
 
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
@@ -228,6 +237,9 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         Gs1 = COMP(FIRST(G1), Gs1);
     }
+
+    // save strata, codimension k
+    SLELTI(*S_, k, S);
 
     return Gs1;
 }

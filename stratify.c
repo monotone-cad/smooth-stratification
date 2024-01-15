@@ -3,7 +3,7 @@
 #include "smooth_stratification.h"
 
 // perform smooth stratification
-Word stratify(Word r, Word L, Word V)
+Word stratify(Word r, Word L, Word *S_, Word V)
 {
     Word D, P;
 
@@ -17,7 +17,7 @@ Word stratify(Word r, Word L, Word V)
     }
 
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
-    Word Gs = strat_helper(1, s, r, Fs, LIST1(0), LIST1(0), NIL, V);
+    Word Gs = strat_helper(1, s, r, Fs, LIST1(0), LIST1(0), NIL, S_, V);
 
     return Gs;
 }
