@@ -20,12 +20,22 @@ LIBDEB=stratifyd.a
 EXE=main
 
 DEPENDENCIESOPT=\
+$(LIBOPT)(util/DEG.o) \
+$(LIBOPT)(util/LPROD.o) \
+$(LIBOPT)(util/LSUM.o) \
+$(LIBOPT)(JacobiFromMinor.o) \
+$(LIBOPT)(strat_helper.o) \
 $(LIBOPT)(read_input.o) \
 $(LIBOPT)(stratify.o) \
 $(LIBOPT)(write_output.o) \
 $(LIBOPT)(main.o) \
 
 DEPENDENCIESDEB=\
+$(LIBDEB)(util/DEG.o) \
+$(LIBDEB)(util/LPROD.o) \
+$(LIBDEB)(util/LSUM.o) \
+$(LIBDEB)(JacobiFromMinor.o) \
+$(LIBDEB)(strat_helper.o) \
 $(LIBDEB)(read_input.o) \
 $(LIBDEB)(stratify.o) \
 $(LIBDEB)(write_output.o) \
