@@ -13,10 +13,12 @@ $(EXTLIBS)
 
 CFLAGSBOTH=-Wall
 CFLAGSDEB=$(CFLAGSBOTH) -g
+CFLAGSDEBPRINT=$(CFLAGSDEB) -DDEBUG
 CFLAGSOPT=$(CFLAGSBOTH) -O4
 
 LIBOPT=stratify.a
 LIBDEB=stratifyd.a
+LIBDEBP=stratifydp.a
 EXE=main
 
 DEPENDENCIESOPT=\
@@ -41,6 +43,17 @@ $(LIBDEB)(stratify.o) \
 $(LIBDEB)(write_output.o) \
 $(LIBDEB)(main.o) \
 
+DEPENDENCIESDEBP=\
+$(LIBDEBP)(util/DEG.o) \
+$(LIBDEBP)(util/LPROD.o) \
+$(LIBDEBP)(util/LSUM.o) \
+$(LIBDEBP)(JacobiFromMinor.o) \
+$(LIBDEBP)(strat_helper.o) \
+$(LIBDEBP)(read_input.o) \
+$(LIBDEBP)(stratify.o) \
+$(LIBDEBP)(write_output.o) \
+$(LIBDEBP)(main.o) \
+
 
 all: opt deb
 
@@ -59,9 +72,19 @@ deb:$(DEPENDENCIESDEB)
         $(LIBDEB) $(EXTLIBSDEB) \
         -o $(EXE)
 
+# debug and print
+debprint:override CFLAGS = $(CFLAGSDEBPRINT)
+debprint:$(DEPENDENCIESDEBP)
+	ranlib $(LIBDEBP)
+	$(CC) $(CFLAGSDEBPRINT) $(INCLUDES) \
+        $(LIBDEBP) $(EXTLIBSDEB) \
+        $(LIBDEBP) $(EXTLIBSDEB) \
+        -o $(EXE)
+
+
 # clean
 clean:
-	rm -f main $(LIBDEB) $(LIBOPT)
+	rm -f main $(LIBDEB) $(LIBDEBP) $(LIBOPT)
 
 # objects
 # %.o:override CC=gcc
