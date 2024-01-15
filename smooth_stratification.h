@@ -18,7 +18,7 @@ void write_output(Word r, Word V, Word *S);
 
 // algorithm
 Word JacobiFromMinor(Word r, Word P, Word j, Word Hs, Word Is, Word Minor);
-Word strat_helper(Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor);
-Word stratify(Word r, Word Ps);
+Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, Word V);
+Word stratify(Word r, Word Ps, Word V);
 
 #endif

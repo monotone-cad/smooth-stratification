@@ -15,13 +15,16 @@ int main(int argc, char **argv)
     }
 
     /* Write out the polynomial for testing purposes */
+    SWRITE("DEBUG: polynomials entered:\n");
     Word Ps1 = Ps, P;
     while (Ps1 != NIL) {
         ADV(Ps1, &P, &Ps1);
-        LWRITE(P); SWRITE("\n");
+        IPWRITE(r, P, V);
+        SWRITE("\n");
     }
+    SWRITE("\n");
 
-    stratify(r, Ps);
+    stratify(r, Ps, V);
 
     /* Write output */
     // write_output(r, V, S);

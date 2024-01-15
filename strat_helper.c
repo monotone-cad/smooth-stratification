@@ -32,13 +32,13 @@ Word IndexHelper(Word m, Word M, Word* count_)
 }
 
 // calls index helper
-inline Word INDEX(Word count, Word M)
+inline Word INDEX(Word count, Word M, Word p_index)
 {
     if (count < 0) return NIL;
 
     Word J = IndexHelper(1, M, &count);
 
-    return J;
+    return INV(COMP(p_index, J));
 }
 
 // recursive smooth stratification of polynomials Fs
@@ -49,23 +49,22 @@ inline Word INDEX(Word count, Word M)
 // Hs: list of polynomials h_i1,...,h_ik
 // Minor: (LENGTH(I1) - 1) * (LENGTH(I1) - 1) - matrix |a_ij| = partial h_i / partial x_j for h in Hs and i in Is
 // return list of all differentials computed by alrogithm
-Word strat_helper(Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor)
+Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, Word V)
 {
     // end of recursion
     Word i0 = FIRST(Is); // number of variables considered so far
     if (np == 0 || i0 == r) {
+        printf("base case: nothing to do\n");
         return NIL;
     }
 
-    // TODO debugging
-    // SWRITE("strat_helper: Is = "); LWRITE(Is); SWRITE("\n");
-    // SWRITE("       Hs = "); LWRITE(Hs); SWRITE("\n");
+    printf("\nrecursive call, k = %d\n", k);
 
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
 
     // set up working array
-    Word g_count = 0; // how many differentials computed so far, index in Gs
+    Word g_count = np; // how many differentials computed so far, index in Gs
     Word Gs = NIL; // list of all differentials computed in this round, working set
 
     // metadata
@@ -93,6 +92,7 @@ Word strat_helper(Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor)
         Backup[p_index] = F1;
         Chase[p_index] = F1;
         Append[p_index] = RED(F1);
+        Gs = COMP(LCOPY(F1), Gs);
 
         // increment index
         ++p_index;
@@ -135,45 +135,38 @@ Word strat_helper(Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor)
             // degree zero - no derivatives taken for this variable. next iteration will increment the variable.
             if (d == 1) continue;
         }
-                // next polynomial
+
+        // next polynomial
         Word F1 = Append[p_index];
 
         printf("p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n", p_index, v, count,
-        ChaseDebug[p_index], LENGTH(Backup[p_index]));
+        ChaseDebug[p_index], LENGTH(Backup[p_index]) / 2);
 
         // compute s_k = partial_{(h_1,...,h_{k-1}),(i_1,...,i_{k-1}),v} h_k
         // get h_k and its degree
         Word D = Degrees[p_index];
         Word P;
-        LWRITE(Chase[p_index]), SWRITE("\n");
         ADV(Chase[p_index], &P, &Chase[p_index]);
 
         // construct jacobi matrix using h1 = P and i1 = v
         Word Jacobi = JacobiFromMinor(r, P, v, Hs, Is, Minor);
 
         // compute partial differential, determinant of jacobi matrix
+        // note that Q may be a constant, we need to preserve it
         Word Q = MAIPDE(r, Jacobi); // next derivative is the jacobi determinant
         Word Qdeg = DEG(r,Q);
 
-        if (LSUM(Qdeg) == r) { // s_k is constant, may as well be zero
-            Qdeg = 0;
-            Q = 0;
-        }
-
         // TODO debugging
-        IWRITE(count); SWRITE(", variable: "); IWRITE(v); SWRITE(" polynomial: "); IWRITE(p_index);
-        SWRITE(", degree: "); LWRITE(Degrees[p_index]); SWRITE("\n  ");
-        LWRITE(INDEX(count, D)); SWRITE(" ");
-        P == 0 ? SWRITE("0") : LWRITE(P); SWRITE("\n  ");
-        LWRITE(INDEX(ChaseDebug[p_index], D)); SWRITE(" ");
-        Q == 0 ? SWRITE("0") : LWRITE(Q); SWRITE("\n\n");
+        SWRITE("index: "); LWRITE(INDEX(count, D, p_index + 1)); SWRITE("\t");
+        SWRITE("h_k = ");  IPWRITE(r, P, V); SWRITE("\n");
+        SWRITE("chase: "); LWRITE(INDEX(ChaseDebug[p_index], D, p_index + 1)); SWRITE("\t");
+        SWRITE("s_k = ");  IPWRITE(r, Q, V); SWRITE("\n");
 
         if (Q != 0) {
             // Gs2 contains derivatives computed during recursion
-            Word Gs2 = strat_helper(g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi);
+            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, V);
             Gs1 = CONC(Gs1, Gs2);
 
-            // TODO
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
         }
@@ -192,14 +185,26 @@ Word strat_helper(Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor)
     printf("End of round. printing Fs\n");
     for (int i = 0; i < np; i++) {
         printf("%d: ", i+1);
-        LWRITE(Backup[i]);
+        Word LL = Backup[i];
+        while (LL != NIL) {
+            Word PP, II;
+            ADV2(LL, &PP, &II, &LL);
+            if (II == 0) continue;
+
+            LWRITE(II); SWRITE(": ");
+            IPWRITE(r, PP, V); SWRITE(", ");
+        }
         SWRITE("\n");
     }
+    SWRITE("\n");
 
     // construct list Gs1 of all functions in Gs
     while (Gs != NIL) {
         Word G1;
         ADV(Gs, &G1, &Gs);
+
+        // skip constant and zero polynomials
+        if (LSUM(SECOND(G1)) == r) continue;
 
         Gs1 = COMP(FIRST(G1), Gs1);
     }
