@@ -105,7 +105,6 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         // increment index
         ++p_index;
-
     }
 
     // main loop, consider each index (j, m_{i0 + 1}, ..., m_r) in lex order
@@ -134,6 +133,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             ++v; // next variable ...
             Dvs[p_index] = v; // ... and store
             Chase[p_index] = Backup[p_index];
+
 #ifdef DEBUG
             ChaseDebug[p_index] = 0;
 #endif
@@ -193,6 +193,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         // next polynomial please.
         Chase[p_index] = RED(Chase[p_index]);
         ++p_index;
+
 #ifdef DEBUG
         ChaseDebug[p_index] = ChaseDebug[p_index] + 1;
 #endif
@@ -213,6 +214,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         }
         SWRITE("\n");
     }
+
     SWRITE("\n");
 #endif
 
