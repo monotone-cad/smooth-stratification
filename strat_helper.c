@@ -82,10 +82,10 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     Word Dvs[np]; // list of current differentiation variable (i1)
     Word Backup[np]; // first polynomial in the list
     Word Chase[np]; // first element is h1
+    Word ChaseIndex[np]; // chase array index of polynomial h1
     Word Append[np]; // pointer to last but one element in list, for quick appending.
 
 #ifdef DEBUG
-    Word ChaseDebug[np]; // chase array index of polynomial h1
     Word Degrees[np]; // degree of Fs[0][0], gives max index
 #endif
 
@@ -101,11 +101,11 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         Dvs[p_index] = i0;
         Backup[p_index] = F1;
         Chase[p_index] = F1;
+        ChaseIndex[p_index] = 0;
         Append[p_index] = RED(F1);
         Gs = COMP(LCOPY(F1), Gs);
 
 #ifdef DEBUG
-        ChaseDebug[p_index] = 0;
         Degrees[p_index] = D;
 #endif
 
@@ -139,10 +139,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             ++v; // next variable ...
             Dvs[p_index] = v; // ... and store
             Chase[p_index] = Backup[p_index];
-
-#ifdef DEBUG
-            ChaseDebug[p_index] = 0;
-#endif
+            ChaseIndex[p_index] = 0;
 
             // calculate next m
             Word M1 = RED(Ms[p_index]);
@@ -158,9 +155,11 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         Word F1 = Append[p_index];
 
 #ifdef DEBUG
-        printf("p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n", p_index, v, count,
-        ChaseDebug[p_index], LENGTH(Backup[p_index]) / 2);
+        printf(
+            "p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n"i,
+            p_index, v, count, ChaseIndex[p_index], LENGTH(Backup[p_index]) / 2);
 #endif
+
 
         // compute s_k = partial_{(h_1,...,h_{k-1}),(i_1,...,i_{k-1}),v} h_k
         // get h_k and its degree
@@ -178,7 +177,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 #ifdef DEBUG
         SWRITE("index: "); LWRITE(INDEX(count, Degrees[p_index], p_index + 1)); SWRITE("\t");
         SWRITE("h_k = ");  IPWRITE(r, P, V); SWRITE("\n");
-        SWRITE("chase: "); LWRITE(INDEX(ChaseDebug[p_index], Degrees[p_index], p_index + 1)); SWRITE("\t");
+        SWRITE("chase: "); LWRITE(INDEX(ChaseIndex[p_index], Degrees[p_index], p_index + 1)); SWRITE("\t");
         SWRITE("s_k = ");  IPWRITE(r, Q, V); SWRITE("\n");
 #endif
 
@@ -201,11 +200,9 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         // next polynomial please.
         Chase[p_index] = RED(Chase[p_index]);
+        ChaseIndex[p_index] = ChaseIndex[p_index] + 1;
         ++p_index;
 
-#ifdef DEBUG
-        ChaseDebug[p_index] = ChaseDebug[p_index] + 1;
-#endif
     }
 
 #ifdef DEBUG
