@@ -15,6 +15,7 @@ Word LPROD(Word L);
 // input/output
 int read_input(Word *r, Word *V, Word *P);
 void write_output(Word r, Word V, Word *S);
+void write_polynomials(Word r, Word Ps, Word V);
 
 // algorithm
 Word JacobiFromMinor(Word r, Word P, Word j, Word Hs, Word Is, Word Minor);
