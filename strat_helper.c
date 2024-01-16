@@ -41,9 +41,61 @@ inline Word INDEX(Word count, Word M, Word p_index)
     return INV(COMP(p_index, J));
 }
 
-Word construct_stratum(Word Gs, Word P, Word Q, Word k)
+Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_index, Word s_index)
 {
-    return LIST6(LIST2('h', k), P, EQOP, LIST2('s', k), Q, NEOP);
+    Word n_null = 0, i = 0, j = 0, L = NIL;
+
+    Word Fs1[np];
+    while (i < np) {
+        Fs1[i] = Backup[i];
+        ++i;
+    }
+
+    // loop over each polynomial as it appears
+    np = np - 1; // for the index check later
+    i = 0;
+    while (n_null < np) {
+        if (!ISLIST(Fs1[i]) || Fs1[i] == NIL) {
+            ++n_null;
+            ++i;
+
+            continue;
+        }
+
+        printf("appending %d %d\n", i, j);
+        LWRITE(Fs1[i]); SWRITE("\n");
+
+        Word P, junk;
+        ADV2(Fs1[i], &P, &junk, &Fs1[i]);
+
+        Word Label = NIL;
+        Word op = EQOP;
+
+        // possibly found s_k or h_k
+        if (i == p_index) {
+            if (j == h_index) {
+                Label = LIST2('h',k);
+            } else if (j == s_index) {
+                Label = LIST2('s',k);
+                op = NEOP;
+            }
+        }
+
+        // append the polynomial
+        L = COMP3(Label, P, op, L);
+
+        // update indices
+        if (i == np) {
+            printf("return to beginning\n");
+            n_null = 0;
+            i = 0;
+            ++j;
+        } else {
+            ++i;
+        }
+    }
+
+    return L;
 }
 
 // recursive smooth stratification of polynomials Fs
@@ -160,7 +212,6 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             p_index, v, count, ChaseIndex[p_index], LENGTH(Backup[p_index]) / 2);
 #endif
 
-
         // compute s_k = partial_{(h_1,...,h_{k-1}),(i_1,...,i_{k-1}),v} h_k
         // get h_k and its degree
         Word P;
@@ -186,9 +237,6 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, S_, V);
             Gs1 = CONC(Gs1, Gs2);
 
-            // append strata
-            S = COMP(construct_stratum(Gs, P, Q, k), S);
-
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
         }
@@ -197,6 +245,11 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         Word Q1 = LIST2(Q, Qdeg);
         SRED(F1, Q1);
         Append[p_index] = RED2(F1);
+
+        if (Q != 0) {
+            // append strata
+            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
+        }
 
         // next polynomial please.
         Chase[p_index] = RED(Chase[p_index]);

@@ -36,6 +36,13 @@ void write_op(Word op)
 
 void write_label(Word L)
 {
+    // no label
+    if (L == NIL) {
+        SWRITE("   ");
+
+        return;
+    }
+
     Word pref, ind;
     FIRST2(L, &pref, &ind);
 
