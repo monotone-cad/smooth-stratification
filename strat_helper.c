@@ -2,45 +2,6 @@
 #include <stdlib.h>
 #include "smooth_stratification.h"
 
-// recover index from count
-// TODO this is only for debugging, can be deleted when done.
-// count = (c1 + c2 * m1 + ... + cn * m(n-1))
-Word IndexHelper(Word m, Word M, Word* count_)
-{
-    Word count = *count_;
-    Word a, M1;
-    ADV(M, &a, &M1);
-
-    if (M1 == NIL) {
-        *count_ = count % m;
-
-        return LIST1(count / m);
-    }
-
-    // skip round
-    if (a == 1) {
-        return COMP(0, IndexHelper(m, M1, count_));
-    }
-
-    Word I1 = IndexHelper(m * a, M1, count_);
-    count = *count_;
-
-    Word j = count / m;
-    *count_ = count % m;
-
-    return COMP(j, I1);
-}
-
-// calls index helper
-inline Word INDEX(Word count, Word M, Word p_index)
-{
-    if (count < 0) return NIL;
-
-    Word J = IndexHelper(1, M, &count);
-
-    return INV(COMP(p_index, J));
-}
-
 Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_index, Word s_index)
 {
     Word n_null = 0, i = 0, j = 0, L = NIL;
