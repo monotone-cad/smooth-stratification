@@ -38,7 +38,9 @@ Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_inde
         ADV2(Fs1[i], &P, &junk, &Fs1[i]);
 
         // skip zero polynomials
-        if (P == 0) continue;
+        if (P == 0) {
+            continue;
+        }
 
         Word Label = NIL;
         Word op = EQOP;
@@ -85,8 +87,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
-    Word S = LELTI(*S_, k + 1);
-    printf("k = %d S length %d\n", k, LENGTH(S));
+    Word S = LELTI(*S_, k);
 
     // set up working array
     Word g_count = np; // how many differentials computed so far, index in Gs
@@ -99,10 +100,6 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     Word Chase[np]; // first element is h1
     Word ChaseIndex[np]; // chase array index of polynomial h1
     Word Append[np]; // pointer to last but one element in list, for quick appending.
-
-#ifdef DEBUG
-    Word Degrees[np]; // degree of Fs[0][0], gives max index
-#endif
 
     Word p_index = 0; // initial polynomial index, ranges over 0 <= p_index < np
 
@@ -119,10 +116,6 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         ChaseIndex[p_index] = 0;
         Append[p_index] = RED(F1);
         Gs = COMP(LCOPY(F1), Gs);
-
-#ifdef DEBUG
-        Degrees[p_index] = D;
-#endif
 
         // increment index
         ++p_index;
@@ -171,7 +164,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
 #ifdef DEBUG
         printf(
-            "p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n"i,
+            "p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n",
             p_index, v, count, ChaseIndex[p_index], LENGTH(Backup[p_index]) / 2);
 #endif
 
@@ -189,9 +182,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         Word Qdeg = DEG(r,Q);
 
 #ifdef DEBUG
-        SWRITE("index: "); LWRITE(INDEX(count, Degrees[p_index], p_index + 1)); SWRITE("\t");
         SWRITE("h_k = ");  IPWRITE(r, P, V); SWRITE("\n");
-        SWRITE("chase: "); LWRITE(INDEX(ChaseIndex[p_index], Degrees[p_index], p_index + 1)); SWRITE("\t");
         SWRITE("s_k = ");  IPWRITE(r, Q, V); SWRITE("\n");
 #endif
 
@@ -211,7 +202,10 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         if (Q != 0) {
             // append strata
-            S = COMP(construct_stratum(Backup, k + 1, np, p_index, ChaseIndex[p_index], count), S);
+#ifdef DEBUG
+            printf("appending stratum, k = %d\n", k);
+#endif
+            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
         }
 
         // next polynomial please.
@@ -251,7 +245,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     }
 
     // save strata, codimension k
-    SLELTI(*S_, k + 1, S);
+    SLELTI(*S_, k, S);
 
     return Gs1;
 }

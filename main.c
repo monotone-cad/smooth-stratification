@@ -36,10 +36,9 @@ int main(int argc, char **argv)
     /* Initialise S (must be done now, once r is set). */
     S = NIL, i = 0;
     while (i < r) {
-        S = COMP(LIST1(NIL), S);
+        S = COMP(NIL, S);
         ++i;
     }
-    printf("r = %d, length strata %d\n", r, LENGTH(S));
 
     Ds = stratify(r, Ps, &S, V);
 
