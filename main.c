@@ -27,18 +27,19 @@ int main(int argc, char **argv)
     ARGSACLIB(argc,argv,&ac,&av);
     BEGINSACLIB((Word *)&argc);
 
-    /* Initialise S. */
-    S = NIL, i = 0;
-    while (i < r) {
-        S = COMP(NIL, S);
-        ++i;
-    }
-
     while (t != 1) {
         t = read_input(&r, &V, &Ps);
     }
 
     FILINE();
+
+    /* Initialise S (must be done now, once r is set). */
+    S = NIL, i = 0;
+    while (i < r) {
+        S = COMP(LIST1(NIL), S);
+        ++i;
+    }
+    printf("r = %d, length strata %d\n", r, LENGTH(S));
 
     Ds = stratify(r, Ps, &S, V);
 

@@ -1,0 +1,81 @@
+CC=g++
+ARFLAGS = rvU
+
+INCLUDES=-I$(saclib)/include -I$(qe)/source
+
+EXTLIBS=-lreadline
+
+EXTLIBSOPT=$(qe)/source/qepcad.a \
+${qe}/extensions/sfext/sfexto.a \
+${qe}/extensions/lift2D/lift2Do.a \
+${qe}/extensions/newadj/newadjo.a \
+${qe}/extensions/adj2d/adj2do.a \
+${qe}/extensions/rend/rendo.a \
+${saclib}/lib/saclibo.a \
+$(EXTLIBS)
+
+EXTLIBSDEB=$(qe)/source/qepcadd.a \
+${qe}/extensions/sfext/sfextd.a \
+${qe}/extensions/lift2D/lift2Dd.a \
+${qe}/extensions/newadj/newadjd.a \
+${qe}/extensions/adj2d/adj2dd.a \
+${qe}/extensions/rend/rendd.a \
+${saclib}/lib/saclibd.a \
+$(EXTLIBS)
+
+
+CFLAGSBOTH=-Wall
+CFLAGSDEB=$(CFLAGSBOTH) -g
+CFLAGSOPT=$(CFLAGSBOTH) -O4
+
+LIBOPT=stratify.a
+LIBDEB=stratifyd.a
+EXE=main
+
+DEPENDENCIESOPT=\
+$(LIBOPT)(read_input.o) \
+$(LIBOPT)(write_output.o) \
+$(LIBOPT)(next_derivative.o) \
+$(LIBOPT)(zeros.o) \
+$(LIBOPT)(set_is_empty.o) \
+$(LIBOPT)(stratify.o) \
+$(LIBOPT)(build_formula.o) \
+$(LIBOPT)(main.o) \
+
+DEPENDENCIESDEB=\
+$(LIBDEB)(read_input.o) \
+$(LIBDEB)(write_output.o) \
+$(LIBDEB)(next_derivative.o) \
+$(LIBDEB)(zeros.o) \
+$(LIBDEB)(set_is_empty.o) \
+$(LIBDEB)(stratify.o) \
+$(LIBDEB)(build_formula.o) \
+$(LIBDEB)(main.o) \
+
+
+all: opt deb
+
+# optimised
+opt:override CFLAGS = $(CFLAGSOPT)
+opt:$(DEPENDENCIESOPT)
+	ranlib $(LIBOPT)
+	$(CC) $(CFLAGSOPT) $(INCLUDES) $(LIBOPT) $(EXTLIBSOPT) $(LIBOPT) $(EXTLIBSOPT) -o $(EXE)
+
+# debug
+deb:override CFLAGS = $(CFLAGSDEB)
+deb:$(DEPENDENCIESDEB)
+	ranlib $(LIBDEB)
+	$(CC) $(CFLAGSDEB) $(INCLUDES) \
+        $(LIBDEB) $(EXTLIBSDEB) \
+        $(LIBDEB) $(EXTLIBSDEB) \
+        -o $(EXE)
+
+# clean
+clean:
+	rm -f main $(LIBDEB) $(LIBOPT)
+
+# objects
+# %.o:override CC=gcc
+%.o:%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<
+

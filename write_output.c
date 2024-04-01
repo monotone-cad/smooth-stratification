@@ -59,7 +59,7 @@ void write_output(Word r, Word S, Word V)
         ADV(S, &Sk, &S);
         ++k;
 
-        SWRITE("Strata of codimension "); IWRITE(k); SWRITE("\n");
+        SWRITE("Strata of codimension "); GWRITE(k); SWRITE("\n");
 
         // strata, codimension k.
         Word j = 0;

@@ -6,54 +6,55 @@ Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_inde
 {
     Word n_null = 0, i = 0, j = 0, L = NIL;
 
+    // avoid modifying the lists stored in Backup
     Word Fs1[np];
     while (i < np) {
         Fs1[i] = Backup[i];
         ++i;
     }
 
-    // loop over each polynomial as it appears
-    np = np - 1; // for the index check later
-    i = 0;
+    // loop over each polynomial in lex order
+    // note that lists may have different lengths, n_null counts how many are null
+    // exit when all are null.
+    i = -1; // first time through the loop, I will be incremented.
     while (n_null < np) {
-        if (!ISLIST(Fs1[i]) || Fs1[i] == NIL) {
-            ++n_null;
-            ++i;
-
-            continue;
-        }
-
-        printf("appending %d %d\n", i, j);
-        LWRITE(Fs1[i]); SWRITE("\n");
-
-        Word P, junk;
-        ADV2(Fs1[i], &P, &junk, &Fs1[i]);
-
-        Word Label = NIL;
-        Word op = EQOP;
-
-        // possibly found s_k or h_k
-        if (i == p_index) {
-            if (j == h_index) {
-                Label = LIST2('h',k);
-            } else if (j == s_index) {
-                Label = LIST2('s',k);
-                op = NEOP;
-            }
-        }
-
-        // append the polynomial
-        L = COMP3(Label, P, op, L);
-
         // update indices
-        if (i == np) {
-            printf("return to beginning\n");
+        if (i == np - 1) {
             n_null = 0;
             i = 0;
             ++j;
         } else {
             ++i;
         }
+
+        if (Fs1[i] == NIL) {
+            ++n_null;
+
+            // skip if null
+            continue;
+        }
+
+        Word P, junk;
+        ADV2(Fs1[i], &P, &junk, &Fs1[i]);
+
+        // skip zero polynomials
+        if (P == 0) continue;
+
+        Word Label = NIL;
+        Word op = EQOP;
+
+        // label polynomials s_k and h_k, identified by their index
+        if (i == p_index) {
+            if (j == h_index) {
+                Label = LIST2('h',k);
+            } else if (j == s_index) {
+                Label = LIST2('s',k);
+                op = NEOP; // polynomial s is always not equal to 0
+            }
+        }
+
+        // append the polynomial
+        L = COMP3(Label, P, op, L);
     }
 
     return L;
@@ -84,7 +85,8 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
-    Word S = LELTI(*S_, k);
+    Word S = LELTI(*S_, k + 1);
+    printf("k = %d S length %d\n", k, LENGTH(S));
 
     // set up working array
     Word g_count = np; // how many differentials computed so far, index in Gs
@@ -209,14 +211,13 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         if (Q != 0) {
             // append strata
-            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
+            S = COMP(construct_stratum(Backup, k + 1, np, p_index, ChaseIndex[p_index], count), S);
         }
 
         // next polynomial please.
         Chase[p_index] = RED(Chase[p_index]);
         ChaseIndex[p_index] = ChaseIndex[p_index] + 1;
         ++p_index;
-
     }
 
 #ifdef DEBUG
@@ -250,7 +251,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     }
 
     // save strata, codimension k
-    SLELTI(*S_, k, S);
+    SLELTI(*S_, k + 1, S);
 
     return Gs1;
 }
