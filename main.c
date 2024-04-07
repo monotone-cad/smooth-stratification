@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "smooth_stratification.h"
 
 Word repl()
@@ -10,7 +8,6 @@ Word repl()
     SWRITE("  0. exit\n");
 
     Word I = IREAD();
-    FILINE();
 
     if (ISLIST(I)) {
         return -1;
@@ -23,15 +20,14 @@ int main(int argc, char **argv)
 {
     /* Start up SACLIB. read data from stdin, robustly, continuing until read is successful. */
     Word i, r, Ps, V, Ds, S, t = 0;
-    Word ac; char **av;
+    Word ac, stack; char **av;
     ARGSACLIB(argc,argv,&ac,&av);
-    BEGINSACLIB((Word *)&argc);
+    BEGINSACLIB(&stack);
+    BEGINQEPCAD(ac,av);
 
-    while (t != 1) {
+    do {
         t = read_input(&r, &V, &Ps);
-    }
-
-    FILINE();
+    } while (t != 1);
 
     /* Initialise S (must be done now, once r is set). */
     S = NIL, i = 0;
@@ -40,7 +36,9 @@ int main(int argc, char **argv)
         ++i;
     }
 
+    printf("about to call stratify\n");
     Ds = stratify(r, Ps, &S, V);
+    printf("stratify is done.\n\n");
 
     /* Basic repl. */
     do {
@@ -71,6 +69,7 @@ int main(int argc, char **argv)
     } while (t != 0); // 0: exit
 
     /* tidy up */
+    ENDQEPCAD();
     ENDSACLIB(SAC_FREEMEM);
     // free(S); /* strata array */
     free(av); /* saclib arguments */

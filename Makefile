@@ -1,14 +1,26 @@
 CC=g++
 ARFLAGS = rvU
 
-INCLUDES=-I$(saclib)/include
+INCLUDES=-I$(saclib)/include -I$(qe)/source
 
-EXTLIBS=-lreadline
+EXTLIBS=-lreadline -lcurses
 
-EXTLIBSOPT=${saclib}/lib/saclibo.a \
+EXTLIBSOPT=$(qe)/source/qepcad.a \
+${qe}/extensions/sfext/sfexto.a \
+${qe}/extensions/lift2D/lift2Do.a \
+${qe}/extensions/newadj/newadjo.a \
+${qe}/extensions/adj2d/adj2do.a \
+${qe}/extensions/rend/rendo.a \
+${saclib}/lib/saclibo.a \
 $(EXTLIBS)
 
-EXTLIBSDEB=${saclib}/lib/saclibd.a \
+EXTLIBSDEB=$(qe)/source/qepcad.a \
+${qe}/extensions/sfext/sfexto.a \
+${qe}/extensions/lift2D/lift2Do.a \
+${qe}/extensions/newadj/newadjo.a \
+${qe}/extensions/adj2d/adj2do.a \
+${qe}/extensions/rend/rendo.a \
+${saclib}/lib/saclibd.a \
 $(EXTLIBS)
 
 CFLAGSBOTH=-Wall
@@ -25,6 +37,7 @@ DEPENDENCIESOPT=\
 $(LIBOPT)(util/DEG.o) \
 $(LIBOPT)(util/LPROD.o) \
 $(LIBOPT)(util/LSUM.o) \
+$(LIBOPT)(util/ISEMPTY.o) \
 $(LIBOPT)(JacobiFromMinor.o) \
 $(LIBOPT)(strat_helper.o) \
 $(LIBOPT)(read_input.o) \
@@ -37,6 +50,7 @@ DEPENDENCIESDEB=\
 $(LIBDEB)(util/DEG.o) \
 $(LIBDEB)(util/LPROD.o) \
 $(LIBDEB)(util/LSUM.o) \
+$(LIBDEB)(util/ISEMPTY.o) \
 $(LIBDEB)(JacobiFromMinor.o) \
 $(LIBDEB)(strat_helper.o) \
 $(LIBDEB)(read_input.o) \
@@ -49,6 +63,7 @@ DEPENDENCIESDEBP=\
 $(LIBDEBP)(util/DEG.o) \
 $(LIBDEBP)(util/LPROD.o) \
 $(LIBDEBP)(util/LSUM.o) \
+$(LIBDEBP)(util/ISEMPTY.o) \
 $(LIBDEBP)(JacobiFromMinor.o) \
 $(LIBDEBP)(strat_helper.o) \
 $(LIBDEBP)(read_input.o) \

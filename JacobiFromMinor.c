@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "smooth_stratification.h"
 
 // construct a jacobi (k + 1) * (k + 1)-matrix from a minor (k*k-matrix) by appending one column

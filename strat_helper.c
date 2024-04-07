@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "smooth_stratification.h"
 
 Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_index, Word s_index)
@@ -125,7 +123,8 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     Word n_finished = 0; // each polynomial has a different max index, keep track of how many indices are maxed out
     Word count = 0; // number of derivatives computed so far, scalar value of (m_{i0 + 1}, ..., m_r)
 
-    while (n_finished < np) { // stop once differential index for every polynomial is maxed
+    bool is_empty = false;
+    while (!is_empty && n_finished < np) { // stop once differential index for every polynomial is maxed
         // reached the end of polynomial list, cycle back to beginning and consider next differential index I
         if (p_index == np) {
             p_index = 0;
@@ -206,6 +205,8 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             printf("appending stratum, k = %d\n", k);
 #endif
             S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
+
+            is_empty = ISEMPTY(r, Gs, V);
         }
 
         // next polynomial please.

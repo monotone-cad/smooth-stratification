@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "smooth_stratification.h"
 
 void write_polynomials(Word r, Word Ps, Word V)

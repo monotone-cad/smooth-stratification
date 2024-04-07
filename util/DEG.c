@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "../smooth_stratification.h"
 
 // convenience function for multi-degree of polynomial, returns (d_r,...,d_1) where d_i is degree of P in variable i
