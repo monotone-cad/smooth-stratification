@@ -15,7 +15,13 @@ Word stratify(Word r, Word L, Word *S_, Word V)
     }
 
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
-    Word Gs = strat_helper(1, s, r, Fs, LIST1(0), LIST1(0), NIL, S_, V);
+    int strata_appended;
+    Word Gs = strat_helper(1, s, r, Fs, LIST1(0), LIST1(0), NIL, &strata_appended, S_, V);
+
+    if (strata_appended == 0) {
+        // X is smooth
+        printf("TODO X is smooth!\n");
+    }
 
     return Gs;
 }

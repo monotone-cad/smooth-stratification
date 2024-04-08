@@ -68,7 +68,7 @@ Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_inde
 // Hs: list of polynomials h_i1,...,h_ik
 // Minor: (LENGTH(I1) - 1) * (LENGTH(I1) - 1) - matrix |a_ij| = partial h_i / partial x_j for h in Hs and i in Is
 // return list of all differentials computed by alrogithm
-Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, Word *S_, Word V)
+Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count_, Word *S_, Word V)
 {
     // end of recursion
     Word i0 = FIRST(Is); // number of variables considered so far
@@ -76,6 +76,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 #ifdef DEBUG
         printf("base case: nothing to do\n");
 #endif
+        *strat_count_ = 0;
         return NIL;
     }
 
@@ -124,6 +125,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     Word count = 0; // number of derivatives computed so far, scalar value of (m_{i0 + 1}, ..., m_r)
 
     bool is_smooth = false;
+    int strat_count = 0;
     while (n_finished < np) { // stop once differential index for every polynomial is maxed
         // reached the end of polynomial list, cycle back to beginning and consider next differential index I
         if (p_index == np) {
@@ -189,9 +191,11 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         // candidate stratum Y1 is non-empty
         if (Q != 0 && !ISEMPTY(r, Gs, Q, V)) {
             // Gs2 contains derivatives computed during recursion
-            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, S_, V);
+            int strata_appended;
+            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_, V);
             Gs1 = CONC(Gs1, Gs2);
-            is_smooth = true; // TODO
+            printf("at round %d + 1, %d strata were appended.\n", k, strata_appended);
+            is_smooth = strata_appended == 0;
 
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
@@ -210,6 +214,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
             // check if candidate stratum is empty
             S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
+            ++strat_count;
         }
 
         // next polynomial please.
@@ -251,6 +256,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     // save strata, codimension k
     SLELTI(*S_, k, S);
 
+    *strat_count_ = strat_count;
     return Gs1;
 }
 
