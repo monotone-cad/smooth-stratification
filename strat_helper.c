@@ -123,8 +123,8 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     Word n_finished = 0; // each polynomial has a different max index, keep track of how many indices are maxed out
     Word count = 0; // number of derivatives computed so far, scalar value of (m_{i0 + 1}, ..., m_r)
 
-    bool is_empty = false;
-    while (!is_empty && n_finished < np) { // stop once differential index for every polynomial is maxed
+    bool is_smooth = false;
+    while (n_finished < np) { // stop once differential index for every polynomial is maxed
         // reached the end of polynomial list, cycle back to beginning and consider next differential index I
         if (p_index == np) {
             p_index = 0;
@@ -135,6 +135,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 
         Word v = Dvs[p_index]; // differentiation variable
         Word m = FIRST(Ms[p_index]);
+        is_smooth = false;
 
         // update variable v and chaser list
         if (count >= m && v == r) { // rollover, but we're finished
@@ -185,10 +186,12 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         SWRITE("s_k = ");  IPWRITE(r, Q, V); SWRITE("\n");
 #endif
 
-        if (Q != 0) {
+        // candidate stratum Y1 is non-empty
+        if (Q != 0 && !ISEMPTY(r, Gs, Q, V)) {
             // Gs2 contains derivatives computed during recursion
             Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, S_, V);
             Gs1 = CONC(Gs1, Gs2);
+            is_smooth = true; // TODO
 
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
@@ -199,14 +202,14 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
         SRED(F1, Q1);
         Append[p_index] = RED2(F1);
 
-        if (Q != 0) {
-            // append strata
+        // append stratum if non-empty
+        if (is_smooth) {
 #ifdef DEBUG
             printf("appending stratum, k = %d\n", k);
 #endif
-            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
 
-            is_empty = ISEMPTY(r, Gs, V);
+            // check if candidate stratum is empty
+            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
         }
 
         // next polynomial please.
