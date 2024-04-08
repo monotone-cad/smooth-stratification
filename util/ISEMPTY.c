@@ -11,7 +11,7 @@
  */
 Word ISEMPTY(Word r, Word L, Word V)
 {
-    Word F = NIL, P;
+    Word F = NIL, P, Ct, Cf;
     while (L != NIL) {
         ADV(L, &P, &L);
 
@@ -27,12 +27,17 @@ Word ISEMPTY(Word r, Word L, Word V)
 
     // set input formula
     Q.SETINPUTFORMULA(V,LIST4(r, r, NIL, F));
-    Q.PRDQFF();
+    // Q.PRDQFF();
     Q.CADautoConst();
 
+    // special case: trivially false
+    if (Q.GVPC == 0) {
+        return 0;
+    }
 
+    LISTOFCWTV(Q.GVPC, &Ct, &Cf);
 
     /* compute cad */
-    return true;
+    return Ct == NIL;
 }
 

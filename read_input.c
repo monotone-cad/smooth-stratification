@@ -48,7 +48,7 @@ int read_input(Word *r_, Word *V_, Word *Ps_)
     if (t == 0) {
         SWRITE("ERROR: invalid variable list.\n");
 
-        return t;
+        return 0;
     }
 
 	r = LENGTH(V);
@@ -61,7 +61,7 @@ int read_input(Word *r_, Word *V_, Word *Ps_)
     if (t == 0) {
         SWRITE("ERROR: invalid QEPCAD formula.\n");
 
-        return t;
+        return 0;
     }
 
     // transform formula into a list of polynomials
