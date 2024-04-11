@@ -7,13 +7,14 @@
  * r : number of variables
  * L : list of polynomials
  * P1: polynomial which must not be equal to 0
+ * Qs: list of atomic QEPCAD formulas for strict polynomial inequalities g > 0
  * V : list of variables
  * return : true if empty, false otherwise
  */
-Word ISEMPTY(Word r, Word L, Word P1, Word V)
+Word ISEMPTY(Word r, Word L, Word P1, Word Ineqs, Word V)
 {
     // list L contains polynomials of the form ((P_1, I_1), ..., (P_k, I_k)), discard I
-    Word F = NIL, P, Ct, Cf;
+    Word F = Ineqs, P, Ct, Cf;
     while (L != NIL) {
         ADV(L, &P, &L);
 

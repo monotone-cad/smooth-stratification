@@ -19,20 +19,19 @@ Word repl()
 int main(int argc, char **argv)
 {
     /* Start up SACLIB. read data from stdin, robustly, continuing until read is successful. */
-    Word r, Ps, V, Ds, S, t = 0;
+    Word r, Ps, Ineqs, V, Ds, S, t = 0;
     Word ac, stack; char **av;
     ARGSACLIB(argc,argv,&ac,&av);
     BEGINSACLIB(&stack);
     BEGINQEPCAD(ac,av);
 
     do {
-        t = read_input(&r, &V, &Ps);
+        t = read_input(&r, &V, &Ps, &Ineqs);
     } while (t != 1);
 
     /* Initialise S (must be done now, once r is set). */
     S = NIL;
-
-    Ds = stratify(r, Ps, &S, V);
+    Ds = stratify(r, Ps, Ineqs, V, &S);
 
     /* Basic repl. */
     do {
@@ -50,7 +49,7 @@ int main(int argc, char **argv)
                 break;
             case 2:
                 SWRITE("List of all strata.\n");
-                write_output(r, S, V);
+                write_output(r, S, Ineqs, V);
 
                 break;
             default:

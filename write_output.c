@@ -4,7 +4,8 @@
  * Write out computed strata
  *      r: number of variables
  *      V: variable list, [x1,...,xr]
- *      S: list of lists of atomic formulas representing strata
+ *      S: list of strata
+ *  Ineqs: list of inequalities
  *
  *====================================================================*/
 
@@ -51,13 +52,25 @@ void write_label(Word L)
     IWRITE(ind);
 }
 
-void write_output(Word r, Word S, Word V)
+void write_output(Word r, Word S, Word Ineqs, Word V)
 {
     // special case: input set is smooth
     if (S == NIL) {
         SWRITE("Stratification algorithm determined that input set X is smooth.\n");
 
         return;
+    }
+
+    if (Ineqs != NIL) {
+        SWRITE("Strata are contained in an open set defined by the following strict inequalities.\n");
+    }
+
+    while (Ineqs != NIL) {
+        Word P;
+        ADV(Ineqs, &P, &Ineqs);
+
+        // Note: P is an atomic QEPCAD formula
+        SWRITE("  "); IPWRITE(r, SECOND(P), V); SWRITE(" "); write_op(GTOP); SWRITE("\n");
     }
 
     Word k = 0;

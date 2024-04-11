@@ -11,16 +11,16 @@
 Word DEG(Word r, Word P);
 Word LSUM(Word L);
 Word LPROD(Word L);
-Word ISEMPTY(Word r, Word L, Word P, Word V);
+Word ISEMPTY(Word r, Word L, Word P, Word Qs, Word V);
 
 // input/output
-int read_input(Word *r, Word *V, Word *P);
-void write_output(Word r, Word S, Word V);
+int read_input(Word *r, Word *V, Word *P, Word *Q);
+void write_output(Word r, Word S, Word Qs, Word V);
 void write_polynomials(Word r, Word Ps, Word V);
 
 // algorithm
 Word JacobiFromMinor(Word r, Word P, Word j, Word Hs, Word Is, Word Minor);
-Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count, Word *S_, Word V);
-Word stratify(Word r, Word Ps, Word *S_, Word V);
+Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count, Word *S_);
+Word stratify(Word r, Word Ps, Word Ineqs, Word V, Word *S_);
 
 #endif

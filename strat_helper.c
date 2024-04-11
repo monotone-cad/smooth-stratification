@@ -68,7 +68,7 @@ Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_inde
 // Hs: list of polynomials h_i1,...,h_ik
 // Minor: (LENGTH(I1) - 1) * (LENGTH(I1) - 1) - matrix |a_ij| = partial h_i / partial x_j for h in Hs and i in Is
 // return list of all differentials computed by alrogithm
-Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count_, Word *S_, Word V)
+Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count_, Word *S_)
 {
     // end of recursion
     Word i0 = FIRST(Is); // number of variables considered so far
@@ -189,10 +189,10 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
 #endif
 
         // candidate stratum Y1 is non-empty
-        if (Q != 0 && !ISEMPTY(r, Gs, Q, V)) {
+        if (Q != 0 && !ISEMPTY(r, Gs, Q, Ineqs, V)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
-            Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_, V);
+            Word Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
             Gs1 = CONC(Gs1, Gs2);
 
             // determine if all derivatives at step k+1 vanish on the set Y1

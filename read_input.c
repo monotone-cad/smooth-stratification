@@ -6,40 +6,51 @@
  *      r: number of variables
  *      V: variable list, [x1,...,xr]
  *      P: integral polynomial in [x1,...,xr]
+ *  Ineqs: list of atomic formulas for strict polynomial inequalities g > 0
  *      t: 1 if successful, 0 otherwise
  *
  *====================================================================*/
 
 // transform QEPCAD formula into polynomial list.
-Word process_formula(Word F, Word r)
+// return true if able to process, false otherwise
+bool process_formula(Word r, Word F, Word *Ps_, Word *Ineqs_)
 {
-    Word junk, op, P, F1, Ps = NIL;
+    Word junk, op, P, F1, Ps = NIL, Ineqs = NIL;
     ADV4(F, &junk, &junk, &junk, &F, &junk);
     ADV(F, &op, &F);
 
     if (op == EQOP) { // single polynomial
-        return LIST1(FIRST(F));
+        *Ps_ = LIST1(FIRST(F));
+        *Ineqs_ = NIL;
+
+        return true;
     } else if (op != ANDOP) { // only accept conjunctions
-        return NIL;
+        return false;
     }
 
     while (F != NIL) {
         ADV(F, &F1, &F);
         FIRST2(F1, &op, &P);
 
-        if (op != EQOP) {
-            return 0;
+        if (op == EQOP) { // f = 0
+            Ps = COMP(P, Ps);
+        } else if (op == GTOP) { // g > 0
+            Ineqs = COMP(LIST4(GTOP, P, r, NIL), Ineqs);
+        } else if (op == LTOP) { // g < 0 => -g > 0
+            Ineqs = COMP(LIST4(GTOP, IPNEG(r, P), r, NIL), Ineqs);
+        } else { // other operations not permitted.
+            return false;
         }
-
-        Ps = COMP(P, Ps);
     }
 
-    return INV(Ps);
+    *Ps_ = INV(Ps); // polynomials appear in order they are entered.
+    *Ineqs_ = Ineqs; // order of inequalities does not matter.
+    return true;
 }
 
-int read_input(Word *r_, Word *V_, Word *Ps_)
+int read_input(Word *r_, Word *V_, Word *Ps_, Word *Ineqs_)
 {
-    Word t, r, V, F, Ps = NIL;
+    Word t, r, V, F;
 
 	/* Read in variable list for the polynomial */
 	SWRITE("Enter a variable list.\n");
@@ -65,9 +76,7 @@ int read_input(Word *r_, Word *V_, Word *Ps_)
     }
 
     // transform formula into a list of polynomials
-    Ps = process_formula(F, r);
-    LWRITE(Ps); SWRITE("\n");
-    if (Ps == NIL) {
+    if (!process_formula(r, F, Ps_, Ineqs_)) {
         SWRITE("ERROR: invalid formula. Please enter a conjunction of polynomial equations.");
 
         return 0;
@@ -75,7 +84,7 @@ int read_input(Word *r_, Word *V_, Word *Ps_)
 
     *r_ = r;
     *V_ = V;
-    *Ps_ = Ps;
+    // note: Ps_ and Ineqs_ already assigned in process_formula
     return 1;
 }
 

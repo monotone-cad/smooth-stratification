@@ -1,7 +1,7 @@
 #include "smooth_stratification.h"
 
 // perform smooth stratification
-Word stratify(Word r, Word L, Word *S_, Word V)
+Word stratify(Word r, Word L, Word Ineqs, Word V, Word *S_)
 {
     // initialise strata S
     *S_ = NIL;
@@ -24,7 +24,7 @@ Word stratify(Word r, Word L, Word *S_, Word V)
 
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
     int strata_appended;
-    Word Gs = strat_helper(1, s, r, Fs, LIST1(0), LIST1(0), NIL, &strata_appended, S_, V);
+    Word Gs = strat_helper(r, V, Ineqs, 1, s, Fs, LIST1(0), LIST1(0), NIL, &strata_appended, S_);
 
     if (strata_appended == 0) {
         // X is smooth
