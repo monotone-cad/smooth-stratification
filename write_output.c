@@ -53,6 +53,13 @@ void write_label(Word L)
 
 void write_output(Word r, Word S, Word V)
 {
+    // special case: input set is smooth
+    if (S == NIL) {
+        SWRITE("Stratification algorithm determined that input set X is smooth.\n");
+
+        return;
+    }
+
     Word k = 0;
     while (S != NIL) {
         Word Sk, Sk1;

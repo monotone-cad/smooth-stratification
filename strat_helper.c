@@ -194,7 +194,9 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             int strata_appended;
             Word Gs2 = strat_helper(k + 1, g_count, r, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_, V);
             Gs1 = CONC(Gs1, Gs2);
-            printf("at round %d + 1, %d strata were appended.\n", k, strata_appended);
+
+            // determine if all derivatives at step k+1 vanish on the set Y1
+            strat_count += strata_appended;
             is_smooth = strata_appended == 0;
 
             Gs = COMP(LIST2(Q, Qdeg), Gs);
@@ -215,6 +217,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
             // check if candidate stratum is empty
             S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
             ++strat_count;
+            printf("incrementing strat count %d\n", strat_count);
         }
 
         // next polynomial please.
@@ -257,6 +260,7 @@ Word strat_helper(Word k, Word np, Word r, Word Fs, Word Is, Word Hs, Word Minor
     SLELTI(*S_, k, S);
 
     *strat_count_ = strat_count;
+    printf("strat_count_ = %d, %d\n", strat_count, *strat_count_);
     return Gs1;
 }
 

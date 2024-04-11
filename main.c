@@ -19,7 +19,7 @@ Word repl()
 int main(int argc, char **argv)
 {
     /* Start up SACLIB. read data from stdin, robustly, continuing until read is successful. */
-    Word i, r, Ps, V, Ds, S, t = 0;
+    Word r, Ps, V, Ds, S, t = 0;
     Word ac, stack; char **av;
     ARGSACLIB(argc,argv,&ac,&av);
     BEGINSACLIB(&stack);
@@ -30,15 +30,9 @@ int main(int argc, char **argv)
     } while (t != 1);
 
     /* Initialise S (must be done now, once r is set). */
-    S = NIL, i = 0;
-    while (i < r) {
-        S = COMP(NIL, S);
-        ++i;
-    }
+    S = NIL;
 
-    printf("about to call stratify\n");
     Ds = stratify(r, Ps, &S, V);
-    printf("stratify is done.\n\n");
 
     /* Basic repl. */
     do {

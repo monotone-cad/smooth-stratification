@@ -3,8 +3,16 @@
 // perform smooth stratification
 Word stratify(Word r, Word L, Word *S_, Word V)
 {
-    Word D, P;
+    // initialise strata S
+    *S_ = NIL;
+    int i = 0;
+    while (i < r) {
+        *S_ = COMP(NIL, *S_);
+        ++i;
+    }
 
+    // initialise the input set of polynomials with their degrees
+    Word D, P;
     Word Fs = NIL, s = 0;
     while (L != NIL) {
         ADV(L, &P, &L);
@@ -20,7 +28,7 @@ Word stratify(Word r, Word L, Word *S_, Word V)
 
     if (strata_appended == 0) {
         // X is smooth
-        printf("TODO X is smooth!\n");
+        *S_ = NIL;
     }
 
     return Gs;

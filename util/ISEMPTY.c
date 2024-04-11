@@ -22,7 +22,6 @@ Word ISEMPTY(Word r, Word L, Word P1, Word V)
 
     // complete formula by adding the inequation and conujnction
     F = COMP2(ANDOP, LIST4(NEOP, P1, r, NIL), F);
-    LWRITE(F); SWRITE("\n");
 
     // re-initialise qepcad before each run
     QepcadCls Q;
