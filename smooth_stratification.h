@@ -15,6 +15,7 @@ Word ISEMPTY(Word r, Word L, Word P, Word Qs, Word V);
 
 // input/output
 int read_input(Word *r, Word *V, Word *P, Word *Q);
+void write_polynomial(Word r, Word P, Word V);
 void write_output(Word r, Word S, Word Qs, Word V);
 void write_polynomials(Word r, Word Ps, Word V);
 

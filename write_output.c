@@ -70,7 +70,7 @@ void write_output(Word r, Word S, Word Ineqs, Word V)
         ADV(Ineqs, &P, &Ineqs);
 
         // Note: P is an atomic QEPCAD formula
-        SWRITE("  "); IPWRITE(r, SECOND(P), V); SWRITE(" "); write_op(GTOP); SWRITE("\n");
+        SWRITE("  "); write_polynomial(r, SECOND(P), V); SWRITE(" "); write_op(GTOP); SWRITE("\n");
     }
 
     Word k = 0;
@@ -97,7 +97,7 @@ void write_output(Word r, Word S, Word Ineqs, Word V)
                 ADV3(Sk1, &L, &P, &op, &Sk1);
 
                 write_label(L); SWRITE(" ");
-                IPWRITE(r, P, V); SWRITE(" "); write_op(op); SWRITE("\n  ");
+                write_polynomial(r, P, V); SWRITE(" "); write_op(op); SWRITE("\n  ");
 
                 if (Sk1 == NIL) {
                     SWRITE("} ");

@@ -43,6 +43,7 @@ $(LIBOPT)(strat_helper.o) \
 $(LIBOPT)(read_input.o) \
 $(LIBOPT)(stratify.o) \
 $(LIBOPT)(write_output.o) \
+$(LIBOPT)(write_polynomial.o) \
 $(LIBOPT)(write_polynomials.o) \
 $(LIBOPT)(main.o) \
 
@@ -56,6 +57,7 @@ $(LIBDEB)(strat_helper.o) \
 $(LIBDEB)(read_input.o) \
 $(LIBDEB)(stratify.o) \
 $(LIBDEB)(write_output.o) \
+$(LIBDEB)(write_polynomial.o) \
 $(LIBDEB)(write_polynomials.o) \
 $(LIBDEB)(main.o) \
 
@@ -69,6 +71,7 @@ $(LIBDEBP)(strat_helper.o) \
 $(LIBDEBP)(read_input.o) \
 $(LIBDEBP)(stratify.o) \
 $(LIBDEBP)(write_output.o) \
+$(LIBDEBP)(write_polynomial.o) \
 $(LIBDEBP)(write_polynomials.o) \
 $(LIBDEBP)(main.o) \
 

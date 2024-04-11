@@ -6,7 +6,7 @@ void write_polynomials(Word r, Word Ps, Word V)
         Word P;
         ADV(Ps, &P, &Ps);
 
-        IPWRITE(r, P, V);
+        write_polynomial(r, P, V);
         SWRITE("\n");
     }
 }
