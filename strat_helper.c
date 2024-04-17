@@ -86,6 +86,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
+    Word Gs2 = NIL; // list of differentials produced during induction
     Word S = LELTI(*S_, k);
 
     // set up working array
@@ -192,7 +193,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         if (Q != 0 && !ISEMPTY(r, Gs, Q, Ineqs, V)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
-            Word Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
+            Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
             Gs1 = CONC(Gs1, Gs2);
 
             // determine if all derivatives at step k+1 vanish on the set Y1
@@ -213,11 +214,11 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #ifdef DEBUG
             printf("appending stratum, k = %d\n", k);
 #endif
+            Word Y = construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count);
+            printf("k = %d, i_k = %d, r = %d, number of derivatives %d\n", k, v, r, LENGTH(Gs2));
 
-            // check if candidate stratum is empty
-            S = COMP(construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count), S);
+            S = COMP(Y, S);
             ++strat_count;
-            printf("incrementing strat count %d\n", strat_count);
         }
 
         // next polynomial please.
@@ -246,6 +247,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #endif
 
     // construct list Gs1 of all functions in Gs
+    Gs = REDI(Gs, np); // discard input polynomials
     while (Gs != NIL) {
         Word G1;
         ADV(Gs, &G1, &Gs);
@@ -260,7 +262,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     SLELTI(*S_, k, S);
 
     *strat_count_ = strat_count;
-    printf("strat_count_ = %d, %d\n", strat_count, *strat_count_);
     return Gs1;
 }
 
