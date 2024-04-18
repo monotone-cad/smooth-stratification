@@ -1,5 +1,72 @@
 #include "smooth_stratification.h"
 
+// append a stratum Y, codimension k.
+void append_stratum(Word *S_, Word k, Word Y)
+{
+    Word S = LELTI(*S_, k);
+    S = COMP(Y, S);
+    SLELTI(*S_, k, S);
+}
+
+bool is_empty_helper(Word r, Word Gs, Word Q, Word Ineqs, Word V)
+{
+    if (Q == 0) return true; // trivially, contradiction 0 /= 0
+
+    Word P, Gs1 = NIL;
+    while (Gs != NIL) {
+        ADV(Gs, &P, &Gs);
+        Gs1 = COMP(FIRST(P), Gs1);
+    }
+
+    return ISEMPTY(r, Gs1, LIST1(Q), Ineqs, V);
+}
+
+void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Gs, Word Ineqs, Word *k1_, Word *Y_)
+{
+    Word P;
+    Word Qs = LIST1(Q); // inequalities
+
+    // candidate list of polynomials begins with Hs. we then see if any of Gs need to be appended.
+    Word k1 = k;
+    // SLELTI(Hs, k, NIL); // delete the zero polynomial
+    while (Gs != NIL) {
+        ADV(Gs, &P, &Gs);
+        P = FIRST(P); // get the polynomial
+        SWRITE("trying polynomial "); IPDWRITE(r, P, V); SWRITE("\n");
+
+        if (P == 0) {
+            continue;
+        }
+
+        if (!ISEMPTY(r, Hs, COMP(P, Qs), Ineqs, V)) {
+            // if this set is non-empty, then there is a point at which P /= 0, thus P adds some information.
+            Hs = COMP(P, Hs);
+            SWRITE("  appending\n");
+            ++k1;
+        }
+    }
+
+    *k1_ = k1;
+
+    // construct the stratum and determine the codimension
+    Word Y = LIST3(LIST2('s', k), Q, NEOP); // stratum, list (label, P, op)
+
+    // first add Hs
+    while (Hs != NIL) {
+        ADV(Hs, &P, &Hs);
+
+        Word Label = NIL;
+        if (k1 <= k) {
+            Label = LIST2('h', k1);
+        }
+
+        Y = COMP3(Label, P, EQOP, Y);
+        --k1;
+    }
+
+    *Y_ = Y;
+}
+
 Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_index, Word s_index)
 {
     Word n_null = 0, i = 0, j = 0, L = NIL;
@@ -87,7 +154,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
     Word Gs2 = NIL; // list of differentials produced during induction
-    Word S = LELTI(*S_, k);
 
     // set up working array
     Word g_count = np; // how many differentials computed so far, index in Gs
@@ -190,7 +256,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #endif
 
         // candidate stratum Y1 is non-empty
-        if (Q != 0 && !ISEMPTY(r, Gs, Q, Ineqs, V)) {
+        if (!is_empty_helper(r, Gs, Q, Ineqs, V)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
             Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
@@ -200,6 +266,17 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
             strat_count += strata_appended;
             is_smooth = strata_appended == 0;
 
+            // append stratum if non-empty
+            if (is_smooth) {
+                Word Y, k1;
+                construct_stratum_basic(k, r, V, COMP(P, Hs), Q, Gs, Ineqs, &k1, &Y);
+#ifdef DEBUG
+                printf("appending stratum, k = %d, think it has codimension %d\n", k, k1);
+#endif
+                append_stratum(S_, k1, Y);
+                ++strat_count;
+            }
+
             Gs = COMP(LIST2(Q, Qdeg), Gs);
             ++g_count;
         }
@@ -208,18 +285,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         Word Q1 = LIST2(Q, Qdeg);
         SRED(F1, Q1);
         Append[p_index] = RED2(F1);
-
-        // append stratum if non-empty
-        if (is_smooth) {
-#ifdef DEBUG
-            printf("appending stratum, k = %d\n", k);
-#endif
-            Word Y = construct_stratum(Backup, k, np, p_index, ChaseIndex[p_index], count);
-            printf("k = %d, i_k = %d, r = %d, number of derivatives %d\n", k, v, r, LENGTH(Gs2));
-
-            S = COMP(Y, S);
-            ++strat_count;
-        }
 
         // next polynomial please.
         Chase[p_index] = RED(Chase[p_index]);
@@ -257,9 +322,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 
         Gs1 = COMP(FIRST(G1), Gs1);
     }
-
-    // save strata, codimension k
-    SLELTI(*S_, k, S);
 
     *strat_count_ = strat_count;
     return Gs1;

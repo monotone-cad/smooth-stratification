@@ -5,24 +5,35 @@
  *
  * cad-based emptiness check - based on SYSSOLVECAD
  * r : number of variables
- * L : list of polynomials
- * P1: polynomial which must not be equal to 0
- * Qs: list of atomic QEPCAD formulas for strict polynomial inequalities g > 0
+ * Fs: list of polynomial equations
+ * Gs: list of polynomials inequations
+ * Hs: list of atomic QEPCAD formulas for strict polynomial inequalities g > 0
  * V : list of variables
  * return : true if empty, false otherwise
  */
-Word ISEMPTY(Word r, Word L, Word P1, Word Ineqs, Word V)
+Word ISEMPTY(Word r, Word Fs, Word Gs, Word Ineqs, Word V)
 {
-    // list L contains polynomials of the form ((P_1, I_1), ..., (P_k, I_k)), discard I
-    Word F = Ineqs, P, Ct, Cf;
-    while (L != NIL) {
-        ADV(L, &P, &L);
+    Word P, Ct, Cf;
 
-        F = COMP(LIST4(EQOP, FIRST(P), r, NIL), F);
+    // start with the list of inequalities
+    Word F = Ineqs;
+
+    // add equations
+    while (Fs != NIL) {
+        ADV(Fs, &P, &Fs);
+
+        F = COMP(LIST4(EQOP, P, r, NIL), F);
+    }
+
+    // and inequations
+    while (Gs != NIL) {
+        ADV(Gs, &P, &Gs);
+
+        F = COMP(LIST4(NEOP, P, r, NIL), F);
     }
 
     // complete formula by adding the inequation and conujnction
-    F = COMP2(ANDOP, LIST4(NEOP, P1, r, NIL), F);
+    F = COMP(ANDOP, F);
 
     // re-initialise qepcad before each run
     QepcadCls Q;
@@ -30,7 +41,7 @@ Word ISEMPTY(Word r, Word L, Word P1, Word Ineqs, Word V)
 
     // set input formula
     Q.SETINPUTFORMULA(V,LIST4(r, r, NIL, F));
-    // Q.PRDQFF();
+    //Q.PRDQFF();
     Q.CADautoConst();
 
     // special case: trivially false
