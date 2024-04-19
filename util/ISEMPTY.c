@@ -5,13 +5,13 @@
  *
  * cad-based emptiness check - based on SYSSOLVECAD
  * r : number of variables
+ * V : list of variables
  * Fs: list of polynomial equations
  * Gs: list of polynomials inequations
  * Hs: list of atomic QEPCAD formulas for strict polynomial inequalities g > 0
- * V : list of variables
  * return : true if empty, false otherwise
  */
-Word ISEMPTY(Word r, Word Fs, Word Gs, Word Ineqs, Word V)
+Word ISEMPTY(Word r, Word V, Word Fs, Word Gs, Word Ineqs)
 {
     Word P, Ct, Cf;
 
@@ -41,7 +41,7 @@ Word ISEMPTY(Word r, Word Fs, Word Gs, Word Ineqs, Word V)
 
     // set input formula
     Q.SETINPUTFORMULA(V,LIST4(r, r, NIL, F));
-    //Q.PRDQFF();
+    Q.PRDQFF();
     Q.CADautoConst();
 
     // special case: trivially false

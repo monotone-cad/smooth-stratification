@@ -1,5 +1,6 @@
 #include "smooth_stratification.h"
 
+// convenience function:
 // append a stratum Y, codimension k.
 void append_stratum(Word *S_, Word k, Word Y)
 {
@@ -8,37 +9,20 @@ void append_stratum(Word *S_, Word k, Word Y)
     SLELTI(*S_, k, S);
 }
 
-bool is_empty_helper(Word r, Word Gs, Word Q, Word Ineqs, Word V)
-{
-    if (Q == 0) return true; // trivially, contradiction 0 /= 0
-
-    Word P, Gs1 = NIL;
-    while (Gs != NIL) {
-        ADV(Gs, &P, &Gs);
-        Gs1 = COMP(FIRST(P), Gs1);
-    }
-
-    return ISEMPTY(r, Gs1, LIST1(Q), Ineqs, V);
-}
-
+// construct a stratum in basic representation.
 void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Gs, Word Ineqs, Word *k1_, Word *Y_)
 {
     Word P;
-    Word Qs = LIST1(Q); // inequalities
+    Word Qs = IPCONST(r,Q) ? NIL : LIST1(Q); // inequations
 
     // candidate list of polynomials begins with Hs. we then see if any of Gs need to be appended.
-    Word k1 = k;
-    // SLELTI(Hs, k, NIL); // delete the zero polynomial
+    --k; // Hs so far contains h_1,...,h_{k-1}
+    Word k1 = k; // codimension >= k
     while (Gs != NIL) {
         ADV(Gs, &P, &Gs);
-        P = FIRST(P); // get the polynomial
         SWRITE("trying polynomial "); IPDWRITE(r, P, V); SWRITE("\n");
 
-        if (P == 0) {
-            continue;
-        }
-
-        if (!ISEMPTY(r, Hs, COMP(P, Qs), Ineqs, V)) {
+        if (!ISEMPTY(r, V, Hs, COMP(P, Qs), Ineqs)) {
             // if this set is non-empty, then there is a point at which P /= 0, thus P adds some information.
             Hs = COMP(P, Hs);
             SWRITE("  appending\n");
@@ -46,85 +30,29 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Gs, W
         }
     }
 
+    // assign k1
     *k1_ = k1;
 
     // construct the stratum and determine the codimension
-    Word Y = LIST3(LIST2('s', k), Q, NEOP); // stratum, list (label, P, op)
+    // begin with Q /= 0
+    Word Y = LIST3(LIST2('s', k+1), Q, NEOP);
 
-    // first add Hs
-    while (Hs != NIL) {
+    // add Hs: extra polynomials first
+    while (k1 > k && Hs != NIL) {
         ADV(Hs, &P, &Hs);
-
-        Word Label = NIL;
-        if (k1 <= k) {
-            Label = LIST2('h', k1);
-        }
-
-        Y = COMP3(Label, P, EQOP, Y);
+        Y = COMP3(NIL, P, EQOP, Y);
         --k1;
     }
 
-    *Y_ = Y;
-}
-
-Word construct_stratum(Word Backup[], Word k, Word np, Word p_index, Word h_index, Word s_index)
-{
-    Word n_null = 0, i = 0, j = 0, L = NIL;
-
-    // avoid modifying the lists stored in Backup
-    Word Fs1[np];
-    while (i < np) {
-        Fs1[i] = Backup[i];
+    // add the remaining Hs
+    Word i = 0;
+    while (i < k && Hs != NIL) {
         ++i;
+        ADV(Hs, &P, &Hs);
+        Y = COMP3(LIST2('h', i), P, EQOP, Y);
     }
 
-    // loop over each polynomial in lex order
-    // note that lists may have different lengths, n_null counts how many are null
-    // exit when all are null.
-    i = -1; // first time through the loop, I will be incremented.
-    while (n_null < np) {
-        // update indices
-        if (i == np - 1) {
-            n_null = 0;
-            i = 0;
-            ++j;
-        } else {
-            ++i;
-        }
-
-        if (Fs1[i] == NIL) {
-            ++n_null;
-
-            // skip if null
-            continue;
-        }
-
-        Word P, junk;
-        ADV2(Fs1[i], &P, &junk, &Fs1[i]);
-
-        // skip zero polynomials
-        if (P == 0) {
-            continue;
-        }
-
-        Word Label = NIL;
-        Word op = EQOP;
-
-        // label polynomials s_k and h_k, identified by their index
-        if (i == p_index) {
-            if (j == h_index) {
-                Label = LIST2('h',k);
-            } else if (j == s_index) {
-                Label = LIST2('s',k);
-                op = NEOP; // polynomial s is always not equal to 0
-            }
-        }
-
-        // append the polynomial
-        L = COMP3(Label, P, op, L);
-    }
-
-    return L;
+    *Y_ = Y;
 }
 
 // recursive smooth stratification of polynomials Fs
@@ -151,9 +79,13 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     printf("\nrecursive call, k = %d\n", k);
 #endif
 
+    // list of H polynomials (rev order) without the last (zero) one.
+    Word Hs1 = RED(CINV(Hs));
+
     // set up return value
     Word Gs1 = NIL; // list of all differentials computed in this round, to return
     Word Gs2 = NIL; // list of differentials produced during induction
+    Word Gs3 = NIL; // store Gs on current round
 
     // set up working array
     Word g_count = np; // how many differentials computed so far, index in Gs
@@ -182,6 +114,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         ChaseIndex[p_index] = 0;
         Append[p_index] = RED(F1);
         Gs = COMP(LCOPY(F1), Gs);
+        Gs3 = COMP(FIRST(F1), Gs3);
 
         // increment index
         ++p_index;
@@ -191,7 +124,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     Word n_finished = 0; // each polynomial has a different max index, keep track of how many indices are maxed out
     Word count = 0; // number of derivatives computed so far, scalar value of (m_{i0 + 1}, ..., m_r)
 
-    bool is_smooth = false;
     int strat_count = 0;
     while (n_finished < np) { // stop once differential index for every polynomial is maxed
         // reached the end of polynomial list, cycle back to beginning and consider next differential index I
@@ -204,7 +136,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 
         Word v = Dvs[p_index]; // differentiation variable
         Word m = FIRST(Ms[p_index]);
-        is_smooth = false;
 
         // update variable v and chaser list
         if (count >= m && v == r) { // rollover, but we're finished
@@ -256,7 +187,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #endif
 
         // candidate stratum Y1 is non-empty
-        if (!is_empty_helper(r, Gs, Q, Ineqs, V)) {
+        if (Q != 0 && !ISEMPTY(r, V, Gs3, LIST1(Q), Ineqs)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
             Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
@@ -264,12 +195,11 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 
             // determine if all derivatives at step k+1 vanish on the set Y1
             strat_count += strata_appended;
-            is_smooth = strata_appended == 0;
 
-            // append stratum if non-empty
-            if (is_smooth) {
+            // append stratum if none were appended during induction
+            if (strata_appended == 0) {
                 Word Y, k1;
-                construct_stratum_basic(k, r, V, COMP(P, Hs), Q, Gs, Ineqs, &k1, &Y);
+                construct_stratum_basic(k, r, V, Hs1, Q, Gs3, Ineqs, &k1, &Y);
 #ifdef DEBUG
                 printf("appending stratum, k = %d, think it has codimension %d\n", k, k1);
 #endif
@@ -278,6 +208,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
             }
 
             Gs = COMP(LIST2(Q, Qdeg), Gs);
+            Gs3 = COMP(Q, Gs3);
             ++g_count;
         }
 
@@ -311,18 +242,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     SWRITE("\n");
 #endif
 
-    // construct list Gs1 of all functions in Gs
-    Gs = REDI(Gs, np); // discard input polynomials
-    while (Gs != NIL) {
-        Word G1;
-        ADV(Gs, &G1, &Gs);
-
-        // skip constant and zero polynomials
-        if (LSUM(SECOND(G1)) == r) continue;
-
-        Gs1 = COMP(FIRST(G1), Gs1);
-    }
-
+    Gs1 = CONC(Gs1, Gs3);
     *strat_count_ = strat_count;
     return Gs1;
 }
