@@ -61,15 +61,15 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Gs, W
 // Hs: list of polynomials h_i1,...,h_ik
 // Minor: (LENGTH(I1) - 1) * (LENGTH(I1) - 1) - matrix |a_ij| = partial h_i / partial x_j for h in Hs and i in Is
 // return list of all differentials computed by alrogithm
-Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count_, Word *S_)
+Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Qs, Word Minor, int *strat_count_, Word *S_)
 {
     // add constraints x_1 = 0, ..., x_{i1 - 1}  0
     Word i0 = FIRST(Is); // number of variables considered so far
     Word v;
 
-    // polynomial 1 x_v^1, in r variables.
-    if (i0 > 0) {
-        Ineqs = COMP(LIST4(EQOP, PMONSV(r, 1, i0, 1), r, NIL), Ineqs);
+    if (i0 > 1) {
+        // polynomial 1 x_{i_k - 1}^1, in r variables.
+        Ineqs = COMP(LIST4(EQOP, PMONSV(r, 1, i0 - 1, 1), r, NIL), Ineqs);
     }
 
     // base case for no polynomials?
@@ -82,7 +82,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     }
 
 #ifdef DEBUG
-    printf("\nrecursive call, k = %d\n", k);
+    printf("\nrecursive call, k = %d, i0 = %d\n", k, i0);
 #endif
 
     // list of H polynomials (rev order) without the last (zero) one.
@@ -127,7 +127,8 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
     }
 
     // base case, i1 = r.
-    if (i0 == r && !ISEMPTY(r, V, Gs3, NIL, Ineqs)) {
+    printf("checking base case, i0 == r and stratum not empty\n");
+    if (i0 == r && !ISEMPTY(r, V, Gs3, Qs, Ineqs)) {
         Word k1, Y;
         construct_stratum_basic(k, r, V, Hs1, 0, Gs3, Ineqs, &k1, &Y);
 #ifdef DEBUG
@@ -208,6 +209,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         // note that Q may be a constant, we need to preserve it
         Word Q = MAIPDE(r, Jacobi); // next derivative is the jacobi determinant
         Word Qdeg = DEG(r,Q);
+        Word Qs1 = COMP(Q, Qs);
 
 #ifdef DEBUG
         SWRITE("h_k = ");  IPWRITE(r, P, V); SWRITE("\n");
@@ -215,10 +217,11 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #endif
 
         // candidate stratum Y1 is non-empty
-        if (Q != 0 && !ISEMPTY(r, V, Gs3, LIST1(Q), Ineqs)) {
+        printf("checking candidate stratum Y_1 is empty\n");
+        if (Q != 0 && !ISEMPTY(r, V, Gs3, Qs1, Ineqs)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
-            Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Jacobi, &strata_appended, S_);
+            Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Qs1, Jacobi, &strata_appended, S_);
             Gs1 = CONC(Gs1, Gs2);
 
             // determine if all derivatives at step k+1 vanish on the set Y1

@@ -24,7 +24,7 @@ Word stratify(Word r, Word L, Word Ineqs, Word V, Word *S_)
 
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
     int strata_appended;
-    Word Gs = strat_helper(r, V, Ineqs, 1, s, Fs, LIST1(0), LIST1(0), NIL, &strata_appended, S_);
+    Word Gs = strat_helper(r, V, Ineqs, 1, s, Fs, LIST1(0), LIST1(0), NIL, NIL, &strata_appended, S_);
 
     if (strata_appended == 0) {
         // X is smooth

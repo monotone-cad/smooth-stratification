@@ -21,7 +21,7 @@ void write_polynomials(Word r, Word Ps, Word V);
 
 // algorithm
 Word JacobiFromMinor(Word r, Word P, Word j, Word Hs, Word Is, Word Minor);
-Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Minor, int *strat_count, Word *S_);
+Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is, Word Hs, Word Qs, Word Minor, int *strat_count, Word *S_);
 Word stratify(Word r, Word Ps, Word Ineqs, Word V, Word *S_);
 
 #endif
