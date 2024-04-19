@@ -13,8 +13,10 @@ void append_stratum(Word *S_, Word k, Word Y)
 void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, Word Gs, Word Ineqs, Word *k1_, Word *Y_)
 {
     Word P;
+    bool q_const = true;
     if (!IPCONST(r, Q)) {
         Qs = COMP(Q, Qs);
+        q_const = false;
     }
 
     // candidate list of polynomials begins with Hs. we then see if any of Gs need to be appended.
@@ -34,9 +36,12 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
     *k1_ = k1;
 
     // construct the stratum and determine the codimension
-    // begin with Q /= 0
-    ADV(Qs, &P, &Qs);
-    Word Y = LIST3(LIST2('s', k+1), P, NEOP);
+    // begin with Q /= 0 if needed
+    Word Y = NIL;
+    if (!q_const) {
+        ADV(Qs, &P, &Qs);
+        Y = COMP3(LIST2('s', k+1), P, NEOP, Y);
+    }
 
     while (Qs != NIL) {
         ADV(Qs, &P, &Qs);
@@ -73,19 +78,11 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 {
     // add constraints x_1 = 0, ..., x_{i1 - 1}  0
     Word i0 = FIRST(Is); // number of variables considered so far
-    Word v = 1;
-    Word Ineqs1 = Ineqs;
-
-    while (v < i0) {
-        // polynomial 1 x_{v}^1, in r variables.
-        Ineqs1 = COMP(LIST4(EQOP, PMONSV(r, 1, v, 1), r, NIL), Ineqs1);
-        ++v;
-    }
 
     // base case for no polynomials?
-    if (np == 0 || k > r) {
+    if (np == 0 || i0 >= r) {
 #ifdef DEBUG
-        printf("base case, no polynomials or k exceeds number of variables. nothing to do\n");
+        printf("base case, no polynomials or no more derivatives possible.\n");
 #endif
         *strat_count_ = 0;
         return NIL;
@@ -136,29 +133,6 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         ++p_index;
     }
 
-    // base case, i1 = r.
-    printf("checking base case, i0 == r and stratum not empty\n");
-    if (i0 == r && !ISEMPTY(r, V, Gs3, Qs, Ineqs1)) {
-        Word k1, Y;
-        construct_stratum_basic(k, r, V, Hs1, 0, Qs, Gs3, Ineqs1, &k1, &Y);
-#ifdef DEBUG
-        printf("base case, ik = r but stratum non-empty.\n");
-        printf("appending stratum, k = %d, think it has codimension %d\n", k, k1);
-#endif
-        append_stratum(S_, k, Y);
-
-        *strat_count_ = 1;
-        return NIL;
-    } else if (i0 == r) { // base case with empty stratum
-#ifdef DEBUG
-        printf("base case, ik = r but stratum is empty.\n");
-#endif
-
-        *strat_count_ = 0;
-        return NIL;
-
-    }
-
     // main loop, consider each index (j, m_{i0 + 1}, ..., m_r) in lex order
     Word n_finished = 0; // each polynomial has a different max index, keep track of how many indices are maxed out
     Word count = 0; // number of derivatives computed so far, scalar value of (m_{i0 + 1}, ..., m_r)
@@ -173,7 +147,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
             ++count;
         }
 
-        v = Dvs[p_index]; // differentiation variable
+        Word v = Dvs[p_index]; // differentiation variable
         Word m = FIRST(Ms[p_index]);
 
         // update variable v and chaser list
@@ -227,8 +201,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #endif
 
         // candidate stratum Y1 is non-empty
-        printf("checking candidate stratum Y_1 is empty\n");
-        if (Q != 0 && !ISEMPTY(r, V, Gs3, Qs1, Ineqs1)) {
+        if (Q != 0 && !ISEMPTY(r, V, Gs3, Qs1, Ineqs)) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
             Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Qs1, Jacobi, &strata_appended, S_);
@@ -244,7 +217,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 #ifdef DEBUG
                 printf("appending stratum, k = %d, think it has codimension %d\n", k, k1);
 #endif
-                append_stratum(S_, k, Y);
+                append_stratum(S_, k1, Y);
                 ++strat_count;
             }
 
