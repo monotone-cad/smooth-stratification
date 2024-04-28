@@ -35,23 +35,6 @@ void write_op(Word op)
     }
 }
 
-void write_label(Word L)
-{
-    // no label
-    if (L == NIL) {
-        SWRITE("   ");
-
-        return;
-    }
-
-    Word pref, ind;
-    FIRST2(L, &pref, &ind);
-
-    CWRITE(pref);
-    SWRITE("_");
-    IWRITE(ind);
-}
-
 void write_output(Word r, Word S, Word Ineqs, Word V)
 {
     // special case: input set is smooth
@@ -92,19 +75,36 @@ void write_output(Word r, Word S, Word Ineqs, Word V)
 
             // Write stratum
             SWRITE("  { ");
-            while (Sk1 != NIL) {
-                Word L, P, op;
-                ADV3(Sk1, &L, &P, &op, &Sk1);
 
-                write_label(L); SWRITE(" ");
-                write_polynomial(r, P, V); SWRITE(" "); write_op(op); SWRITE("\n  ");
+            Word Eqs, Ineqs, P;
+            FIRST2(Sk1, &Eqs, &Ineqs);
 
-                if (Sk1 == NIL) {
+            // write equations
+            while (Eqs != NIL) {
+                ADV(Eqs, &P, &Eqs);
+
+                write_polynomial(r, P, V); SWRITE(" "); write_op(EQOP); SWRITE("\n  ");
+
+                if (Eqs == NIL && Ineqs == NIL) {
                     SWRITE("} ");
                 } else {
                     SWRITE(", ");
                 }
             }
+
+            // write inequations
+            while (Ineqs != NIL) {
+                ADV(Ineqs, &P, &Ineqs);
+
+                write_polynomial(r, P, V); SWRITE(" "); write_op(NEOP); SWRITE("\n  ");
+
+                if (Ineqs == NIL) {
+                    SWRITE("} ");
+                } else {
+                    SWRITE(", ");
+                }
+            }
+
             SWRITE("\n");
         }
 

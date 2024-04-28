@@ -13,7 +13,7 @@ void append_stratum(Word *S_, Word k, Word Y)
 void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, Word Gs, Word Ineqs, Word *k1_, Word *Y_)
 {
     Word L, P, i;
-    Word Y = NIL; // candidate stratum
+    Word Eqs = NIL, Ineqats = NIL;
 
     // we may have Q = const, if so don't include it.
     if (!IPCONST(r, Q)) {
@@ -25,7 +25,7 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
     while (L != NIL) {
         // equation h = 0
         ADV(L, &P, &L);
-        Y = COMP3(LIST2('h', i), P, EQOP, Y);
+        Eqs = COMP(P, Eqs);
 
        --i;
     }
@@ -34,7 +34,7 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
     while (L != NIL) {
         // inequation s /= 0
         ADV(L, &P, &L);
-        Y = COMP3(NIL, P, NEOP, Y);
+        Ineqats = COMP(P, Ineqats);
     }
 
     // we start with functions (h_1,...,h_{k-1}) and then determine which ones from Gs are required.
@@ -47,7 +47,7 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
         if (!ISEMPTY(r, V, Hs, COMP(P, Qs), Ineqs)) {
             // if this set is non-empty, then there is a point at which P /= 0, thus P = 0 is necessary
             Hs = COMP(P, Hs);
-            Y = COMP3(NIL, P, EQOP, Y);
+            Eqs = COMP(P, Eqs);
 
             ++k1; // addition of a new polynomial increases the codimension
         }
@@ -55,7 +55,7 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
 
     // assign to return
     *k1_ = k1;
-    *Y_ = Y;
+    *Y_ = LIST2(Eqs, Ineqats);
 }
 
 // recursive smooth stratification of polynomials Fs
