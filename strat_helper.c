@@ -12,57 +12,49 @@ void append_stratum(Word *S_, Word k, Word Y)
 // construct a stratum in basic representation.
 void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, Word Gs, Word Ineqs, Word *k1_, Word *Y_)
 {
-    Word P;
-    bool q_const = true;
+    Word L, P, i;
+    Word Y = NIL; // candidate stratum
+
+    // we may have Q = const, if so don't include it.
     if (!IPCONST(r, Q)) {
         Qs = COMP(Q, Qs);
-        q_const = false;
     }
 
-    // candidate list of polynomials begins with Hs. we then see if any of Gs need to be appended.
-    --k; // Hs so far contains h_1,...,h_{k-1}
-    Word k1 = k; // codimension >= k
+    // add Qs and Hs to the definition of stratum
+    L = Hs, i = k - 1;
+    while (L != NIL) {
+        // equation h = 0
+        ADV(L, &P, &L);
+        Y = COMP3(LIST2('h', i), P, EQOP, Y);
+
+       --i;
+    }
+
+    L = Qs;
+    while (L != NIL) {
+        // inequation s /= 0
+        ADV(L, &P, &L);
+        Y = COMP3(NIL, P, NEOP, Y);
+    }
+
+    // we start with functions (h_1,...,h_{k-1}) and then determine which ones from Gs are required.
+    Word k1 = k - 1; // store the codimension.
+
+    // attempt to add mroe polynomials from the list Gs of candidate functions.
     while (Gs != NIL) {
         ADV(Gs, &P, &Gs);
 
         if (!ISEMPTY(r, V, Hs, COMP(P, Qs), Ineqs)) {
-            // if this set is non-empty, then there is a point at which P /= 0, thus P adds some information.
+            // if this set is non-empty, then there is a point at which P /= 0, thus P = 0 is necessary
             Hs = COMP(P, Hs);
-            ++k1;
+            Y = COMP3(NIL, P, EQOP, Y);
+
+            ++k1; // addition of a new polynomial increases the codimension
         }
     }
 
-    // assign k1
+    // assign to return
     *k1_ = k1;
-
-    // construct the stratum and determine the codimension
-    // begin with Q /= 0 if needed
-    Word Y = NIL;
-    if (!q_const) {
-        ADV(Qs, &P, &Qs);
-        Y = COMP3(LIST2('s', k+1), P, NEOP, Y);
-    }
-
-    while (Qs != NIL) {
-        ADV(Qs, &P, &Qs);
-        Y = COMP3(NIL, P, NEOP, Y);
-    }
-
-    // add Hs: extra polynomials first
-    while (k1 > k && Hs != NIL) {
-        ADV(Hs, &P, &Hs);
-        Y = COMP3(NIL, P, EQOP, Y);
-        --k1;
-    }
-
-    // add the remaining Hs
-    Word i = 0;
-    while (i < k && Hs != NIL) {
-        ++i;
-        ADV(Hs, &P, &Hs);
-        Y = COMP3(LIST2('h', i), P, EQOP, Y);
-    }
-
     *Y_ = Y;
 }
 
@@ -193,15 +185,21 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         // note that Q may be a constant, we need to preserve it
         Word Q = MAIPDE(r, Jacobi); // next derivative is the jacobi determinant
         Word Qdeg = DEG(r,Q);
-        Word Qs1 = COMP(Q, Qs);
+        bool q_const = IPCONST(r, Q);
+        Word Q1 = LIST2(Q, Qdeg);
+        Word Qs1 = Qs;
+        if (!q_const) Qs1 = COMP(Q, Qs1); // because c /= 0 is trivially true
 
 #ifdef DEBUG
         SWRITE("h_k = ");  IPWRITE(r, P, V); SWRITE("\n");
         SWRITE("s_k = ");  IPWRITE(r, Q, V); SWRITE("\n");
 #endif
 
-        // candidate stratum Y1 is non-empty
-        if (Q != 0 && !ISEMPTY(r, V, Gs3, Qs1, Ineqs)) {
+        // candidate stratum Y1 on which Q /= 0
+        //   - 0 /= 0 is trivially false, so we immediately conclude that it's empty
+        //   - const /= 0 is trivially true, so assuming the algebraic set Gs3 is non-empty, Y1 is trivially non-empty
+        //   - if Q is constant, Y1 must be the last candidate, since the next one includes a trivially false equation
+        if (Q != 0 && (q_const || !ISEMPTY(r, V, Gs3, Qs1, Ineqs))) {
             // Gs2 contains derivatives computed during recursion
             int strata_appended;
             Gs2 = strat_helper(r, V, Ineqs, k + 1, g_count, Gs, COMP(v, Is), COMP(P, Hs), Qs1, Jacobi, &strata_appended, S_);
@@ -221,13 +219,17 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
                 ++strat_count;
             }
 
-            Gs = COMP(LIST2(Q, Qdeg), Gs);
             Gs3 = COMP(Q, Gs3);
+            Gs = COMP(Q1, Gs);
             ++g_count;
+
+            if (q_const) {
+                // the next candidate will include the trivially false eequation const = 0. stop.
+                break;
+            }
         }
 
         // append derivative to Fs, preserving zeroes
-        Word Q1 = LIST2(Q, Qdeg);
         SRED(F1, Q1);
         Append[p_index] = RED2(F1);
 

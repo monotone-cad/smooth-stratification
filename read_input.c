@@ -6,7 +6,7 @@
  *      r: number of variables
  *      V: variable list, [x1,...,xr]
  *      P: integral polynomial in [x1,...,xr]
- *  Ineqs: list of atomic formulas for strict polynomial inequalities g > 0
+ *  Ineqs: list of strict polynomial inequalities g > 0
  *      t: 1 if successful, 0 otherwise
  *
  *====================================================================*/
@@ -35,9 +35,9 @@ bool process_formula(Word r, Word F, Word *Ps_, Word *Ineqs_)
         if (op == EQOP) { // f = 0
             Ps = COMP(P, Ps);
         } else if (op == GTOP) { // g > 0
-            Ineqs = COMP(LIST4(GTOP, P, r, NIL), Ineqs);
+            Ineqs = COMP(P, Ineqs);
         } else if (op == LTOP) { // g < 0 => -g > 0
-            Ineqs = COMP(LIST4(GTOP, IPNEG(r, P), r, NIL), Ineqs);
+            Ineqs = COMP(IPNEG(r, P), Ineqs);
         } else { // other operations not permitted.
             return false;
         }

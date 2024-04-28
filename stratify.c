@@ -11,8 +11,16 @@ Word stratify(Word r, Word L, Word Ineqs, Word V, Word *S_)
         ++i;
     }
 
-    // initialise the input set of polynomials with their degrees
+    // initialise the inequalities as a QEPCAD formula
     Word D, P;
+    Word F = NIL;
+    while (Ineqs != NIL) {
+        ADV(Ineqs, &P, &Ineqs);
+
+        F = COMP(LIST4(GTOP, P, r, NIL), F);
+    }
+
+    // initialise the input set of polynomials with their degrees
     Word Fs = NIL, s = 0;
     while (L != NIL) {
         ADV(L, &P, &L);
@@ -24,7 +32,7 @@ Word stratify(Word r, Word L, Word Ineqs, Word V, Word *S_)
 
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
     int strata_appended;
-    Word Gs = strat_helper(r, V, Ineqs, 1, s, Fs, LIST1(0), LIST1(0), NIL, NIL, &strata_appended, S_);
+    Word Gs = strat_helper(r, V, F, 1, s, Fs, LIST1(0), LIST1(0), NIL, NIL, &strata_appended, S_);
 
     if (strata_appended == 0) {
         // X is smooth
