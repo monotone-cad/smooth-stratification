@@ -177,6 +177,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
         // get h_k and its degree
         Word P;
         ADV(Chase[p_index], &P, &Chase[p_index]);
+        if (P == 0) break;
 
         // construct jacobi matrix using h1 = P and i1 = v
         Word Jacobi = JacobiFromMinor(r, P, v, Hs, Is, Minor);
