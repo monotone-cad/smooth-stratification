@@ -169,8 +169,8 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
 
 #ifdef DEBUG
         printf(
-            "p_index %d, variable %d, count = %d, chase_index = %d, len = %d\n",
-            p_index, v, count, ChaseIndex[p_index], LENGTH(Backup[p_index]) / 2);
+            "k = %d, p_index %d, variable %d, count = %d, chase_index = %d, len = %d, n_finished = %d\n",
+            k, p_index, v, count, ChaseIndex[p_index], LENGTH(Backup[p_index]) / 2, n_finished);
 #endif
 
         // compute s_k = partial_{(h_1,...,h_{k-1}),(i_1,...,i_{k-1}),v} h_k
