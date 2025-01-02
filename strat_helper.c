@@ -161,7 +161,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
             Ms[p_index] = M1;
 
             // degree zero - no derivatives taken for this variable. next iteration will increment the variable.
-            if (d == 1) continue;
+            if (d == 0) continue;
         }
 
         // next polynomial
