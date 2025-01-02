@@ -38,7 +38,7 @@ void construct_stratum_basic(Word k, Word r, Word V, Word Hs, Word Q, Word Qs, W
     }
 
     // we start with functions (h_1,...,h_{k-1}) and then determine which ones from Gs are required.
-    Word k1 = k - 1; // store the codimension.
+    Word k1 = k; // store the codimension.
 
     // attempt to add mroe polynomials from the list Gs of candidate functions.
     while (Gs != NIL) {
@@ -212,7 +212,7 @@ Word strat_helper(Word r, Word V, Word Ineqs, Word k, Word np, Word Fs, Word Is,
             // append stratum if none were appended during induction
             if (strata_appended == 0) {
                 Word Y, k1;
-                construct_stratum_basic(k, r, V, Hs1, Q, Qs, Gs3, Ineqs, &k1, &Y);
+                construct_stratum_basic(k, r, V, COMP(P, Hs1), Q, Qs, Gs3, Ineqs, &k1, &Y);
 #ifdef DEBUG
                 printf("appending stratum, k = %d, think it has codimension %d\n", k, k1);
 #endif
