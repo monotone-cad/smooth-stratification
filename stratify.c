@@ -30,6 +30,9 @@ Word stratify(Word r, Word L, Word Ineqs, Word V, Word *S_)
         Fs = COMP(LIST2(P, D), Fs);
     }
 
+    // polynomial order matters. preserve it.
+    Fs = INV(Fs);
+
     // initial i0 = FIRST(I1) = 0. h0 = FIRST(Hs) = 0, Minor is the empty matrix
     int strata_appended;
     Word Gs = strat_helper(r, V, F, 1, s, Fs, LIST1(0), LIST1(0), NIL, NIL, &strata_appended, S_);
